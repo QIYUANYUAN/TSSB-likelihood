@@ -1,6 +1,9 @@
 treeF = None
 freqF = None
-group = 297
+n_t = 297
+tree_in = "T_297.txt"
+freq_in = "F_297.txt"
+result = "result_297.csv"
 
 
 def openfile(tree_file, freq_file):
@@ -71,6 +74,7 @@ class tree(object):
     
     def cal_log_likelihood(self,node,depth):
         #print("--------------------", self.indices[node], "-------------------")
+        if (self.F[self.indices[node]]<=1e-9): return 0;
         weight=self.U[self.indices[node]]/self.F[self.indices[node]];
         likelihood_self=bpdf(weight,(self.alpha_decay**depth)*self.alpha);
         #print(weight,likelihood_self)
@@ -81,20 +85,21 @@ class tree(object):
             p_like=1.0;
             #print("---",p,stick,"---")
             for v in p:
-                p_like*=bpdf(self.F[self.indices[v]]/stick,self.gamma);
-                #print(v,bpdf(self.F[self.indices[v]]/stick,self.gamma))
+                if(self.F[self.indices[v]]>1e-9): p_like*=bpdf(self.F[self.indices[v]]/stick,self.gamma);
+                #print(self.F[self.indices[v]]/stick,self.gamma)
                 stick-=self.U[self.indices[v]];
             likelihood_child+=p_like;
         log_like+=math.log(likelihood_child);
         for v in self.children[node]:
             log_like+=self.cal_log_likelihood(v,depth+1);
+        #print("log_like", log_like);
         return log_like;
 
 
     
         
         
-openfile("Data/T_%d.txt"%group,"Data/F_%d.txt"%group);
+openfile("Data/"+tree_in,"Data/"+freq_in);
 
 
 nodes=[]
@@ -106,7 +111,7 @@ for line in freqF:
 
 ntrees=int(treeF.readline().split()[0]);
 
-result=open("Result/result.csv","w");
+result=open("Result/"+result,"w");
 
 def get_next_tree():
 #if True:
@@ -122,7 +127,9 @@ def get_next_tree():
     
     result.write("%f\n"%ll);
 
-for _ in range(group):
+for _ in range(n_t):
     get_next_tree();
+    pass
+
 
 result.close();
